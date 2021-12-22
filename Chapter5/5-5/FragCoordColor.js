@@ -8,15 +8,13 @@ var VSHADER_SOURCE =
   'void main() {\n' +
   '  gl_Position =  a_Position;\n' +
   '  gl_PointSize = 10.0;\n' +
-  ' v_Color = a_Color;\n'  +  
   '}\n';
 
 // Fragment shader program
 var FSHADER_SOURCE =
   'precision mediump float;\n' + 
-  'varying vec4 v_Color;\n' + 
   'void main() {\n' +
-  '  gl_FragColor = v_Color;\n' +
+  '  gl_FragColor = vec4(gl_FragCoord.x/300.0, 0.0, gl_FragCoord.y/300.0, 1.0);\n' +
   '}\n';
 
 function main(){
@@ -33,20 +31,19 @@ function main(){
         // 以顶点为起始点，逆时针方向绘制三角形来判断最后一条边;
         // gl.TRIANGLE_STRIGN 和 gl.TRIANGLE_FAN渲染模式跟顶点次序有关;
         var vertices = new Float32Array([
-            0.0, 0.3, 1.0, 0.0, 0.0,
-            -0.3, -0.3, 0.0, 1.0, 0.0,
-            0.3, -0.3, 0.0, 0.0, 1.0
+            0.0, 0.3,
+            -0.3, -0.3,
+            0.3, -0.3
         ]);
         var n = 3;
         var vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         var FSize = vertices.BYTES_PER_ELEMENT;
-        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSize * 5, 0);
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(a_Position);
 
-        gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSize * 5, FSize * 2);
-        gl.enableVertexAttribArray(a_Color);
+        
         return n;
     }
    
