@@ -14,7 +14,7 @@ var VSHADER_SOURCE =
 var FSHADER_SOURCE =
   'precision mediump float;\n' + 
   'void main() {\n' +
-  '  gl_FragColor = vec4(gl_FragCoord.x/300.0, 0.0, gl_FragCoord.y/300.0, 1.0);\n' +
+  '  gl_FragColor = vec4(gl_FragCoord.x/600.0, 0.0, gl_FragCoord.y/600.0, 1.0);\n' +
   '}\n';
 
 function main(){

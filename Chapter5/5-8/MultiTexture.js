@@ -4,7 +4,6 @@ var VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
   'attribute vec2 a_TextCoord;\n' +
   'varying vec2 v_TextCoord;\n' +
-  'uniform mat4 u_ModelMatrix;\n' +
   'void main() {\n' +
   '  gl_Position =  a_Position;\n' +
   '  v_TextCoord = a_TextCoord;\n'  +  

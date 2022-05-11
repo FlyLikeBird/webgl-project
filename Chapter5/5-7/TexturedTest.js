@@ -4,7 +4,6 @@ var VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
   'attribute vec2 a_TextCoord;\n' +
   'varying vec2 v_TextCoord;\n' +
-  'uniform mat4 u_ModelMatrix;\n' +
   'void main() {\n' +
   '  gl_Position =  a_Position;\n' +
   '  v_TextCoord = a_TextCoord;\n'  +  
@@ -24,10 +23,9 @@ function main(){
     var gl = canvas.getContext('webgl');
     initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-    var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
     var n = initVertexBuffer();
     if ( initTexture()){
-
+   
     }
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     function initVertexBuffer(){
@@ -35,10 +33,14 @@ function main(){
         // 以顶点为起始点，逆时针方向绘制三角形来判断最后一条边;
         // gl.TRIANGLE_STRIGN 和 gl.TRIANGLE_FAN渲染模式跟顶点次序有关;
         var vertices = new Float32Array([
-            -0.5, 0.5, -0.5, 0.5,
-            -0.5, -0.5, -0.5, -0.5,
-            0.5, 0.5, 0.5, 0.5,
-            0.5, -0.5, 0.5, -0.5
+            // -0.5, 0.5, -0.5, 0.5,
+            // -0.5, -0.5, -0.5, -0.5,
+            // 0.5, 0.5, 0.5, 0.5,
+            // 0.5, -0.5, 0.5, -0.5
+            -0.5, 0.5, 0.0, 1.0,
+            -0.5, -0.5, 0.0, 0.0,
+            0.5, 0.5, 3.0, 1.0,
+            0.5, -0.5, 3.0, 0.0
         ]);
         var n = 4;
         var vertexBuffer = gl.createBuffer();
@@ -62,15 +64,14 @@ function main(){
         }
         return true;
     }
-
     function loadTexture(textTure, u_Sampler, image){
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, textTure);
         // 配置纹理参数
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
         gl.uniform1i(u_Sampler, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
