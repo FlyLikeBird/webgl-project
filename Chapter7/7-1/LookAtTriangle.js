@@ -45,7 +45,7 @@ function main(){
         // var vertices = new Float32Array([-0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.8, -0.3, 0.6, -0.9]);
         // gl.TRIANGLE_STRIGN 和 gl.TRIANGLE_FAN渲染模式跟顶点次序有关;
         var vertices = new Float32Array([
-            0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 
+            0.6, 0.0, 0.0, 0.0, 0.0, 1.0, 
             0.5, 0.0, 0.0, 0.0, 1.0, 1.0,
             0.5, 0.5, 0.5, 0.0, 1.0, 1.0
         ]);
@@ -59,17 +59,31 @@ function main(){
         gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSize * 6, FSize * 3);
         gl.enableVertexAttribArray(a_Color);
         // gl.uniformMatrix4fv(u_rotateMatrix, false, matrix.elements);
-        gl.drawArrays(gl.POINTS, 0, 1);
+        // gl.drawArrays(gl.POINTS, 0, 1);
         
         return n;
     }
+    let TMatrix = new Matrix4();
+    let R1Matrix = new Matrix4();
+    let R2Matrix = new Matrix4();
     function render(){
         gl.clear(gl.COLOR_BUFFER_BIT); 
         currentAngle += 0.5;   
-        matrix.setRotate(currentAngle, 0.5, 0.5, 0);
         
+        TMatrix.setTranslate(-0.5, 0.0, 0.0);
+        R1Matrix.setRotate(30, 0.5, 0.0, 0.0);
+        R2Matrix.setRotate(currentAngle, 0.0, 0.5, 0.0);
+    
+        // multipy 规定右乘矩阵
+        // rotateMatrix.multiply(matrix);
+        var matrix3 = new Matrix4();
+        // matrix.invert().multiply(rotateMatrix.multiply(matrix));
+        // 
+        R2Matrix.multiply(R1Matrix.multiply(TMatrix));
+
+       
         // matrix.rotate(currentAngle, 0, 1, 0 );
-        gl.uniformMatrix4fv(u_rotateMatrix, false, matrix.elements);
+        gl.uniformMatrix4fv(u_rotateMatrix, false, R2Matrix.elements);
         gl.drawArrays(gl.POINTS, 0, 1);
         gl.uniformMatrix4fv(u_rotateMatrix, false, new Matrix4().elements);
         gl.drawArrays(gl.LINES, 1, 2);
