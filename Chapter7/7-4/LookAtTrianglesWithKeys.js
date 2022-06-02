@@ -27,9 +27,7 @@ function main(){
     var u_rotateMatrix = gl.getUniformLocation(gl.program, 'u_rotateMatrix');
     var u_viewMatrix = gl.getUniformLocation(gl.program, 'u_viewMatrix');
     var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
-    var matrix = new Matrix4();
-   
-    let currentAngle = 0;
+    
     var n = initVertexBuffer();
     function initVertexBuffer(){
         // var vertices = new Float32Array([-0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.8, -0.3, 0.6, -0.9]);
@@ -60,25 +58,26 @@ function main(){
         gl.enableVertexAttribArray(a_Color);
         // gl.uniformMatrix4fv(u_rotateMatrix, false, matrix.elements);
         // gl.drawArrays(gl.POINTS, 0, 1);
-        
         return n;
     }
+    let eyeX = 0.2, eyeY = 0.2, eyeZ = 0.2;
     let viewMatrix = new Matrix4();
+    document.onkeydown = e=>{
+        console.log(e.keyCode);
+        if ( e.keyCode === 39 ) {
+            eyeX += 0.01;
+        }
+        if ( e.keyCode === 37 ){
+            eyeX -= 0.01;
+        } 
+        render();
+    }
     function render(){
         gl.clear(gl.COLOR_BUFFER_BIT); 
         // 视图矩阵 X 模型矩阵 ，变换次序影响结果
-        viewMatrix.setLookAt(0.25, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); 
+        viewMatrix.setLookAt(eyeX, eyeY, eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); 
         gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix.elements);
         gl.drawArrays(gl.TRIANGLES, 0, n);
-      
-    }
-    var g_last = Date.now();
-    function getAngle(angle){
-        var now = Date.now();
-        var diff = now - g_last;
-        g_last = now;
-        var newAngle = angle + ( angle_step * diff ) / 1000.0;
-        return newAngle %= 360;
     }
     render();
 }

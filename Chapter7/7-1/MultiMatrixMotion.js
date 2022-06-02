@@ -5,9 +5,8 @@ var VSHADER_SOURCE =
   'attribute vec4 a_Color;\n' +
   'varying vec4 v_Color;\n' +
   'uniform mat4 u_rotateMatrix;\n' +
-  'uniform mat4 u_viewMatrix;\n' + 
   'void main() {\n' +
-  '  gl_Position = u_viewMatrix * a_Position ;\n' +
+  '  gl_Position = u_rotateMatrix * a_Position ;\n' +
   '  gl_PointSize = 10.0;\n' +
   ' v_Color = a_Color;\n' +
   '}\n';
@@ -25,31 +24,32 @@ function main(){
     initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
     var u_rotateMatrix = gl.getUniformLocation(gl.program, 'u_rotateMatrix');
-    var u_viewMatrix = gl.getUniformLocation(gl.program, 'u_viewMatrix');
     var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
     var matrix = new Matrix4();
-   
+    // setTimeout(()=>{
+    //     matrix.setRotate(30, 0.5, 0.5, 0.0);
+    //     gl.uniformMatrix4fv(u_rotateMatrix, false, matrix.elements);
+    //     var prevMatrix = new Matrix4().set(matrix);
+    //     gl.drawArrays(gl.POINTS, 0, 1);
+    //     gl.uniformMatrix4fv(u_rotateMatrix, false, new Matrix4().elements);
+    //     gl.drawArrays(gl.LINES, 1, 2);
+    //     console.log(matrix.elements);
+    //     setTimeout(()=>{
+            
+    //         render();
+    //     },2000)
+    // },100)
     let currentAngle = 0;
     var n = initVertexBuffer();
     function initVertexBuffer(){
         // var vertices = new Float32Array([-0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.8, -0.3, 0.6, -0.9]);
         // gl.TRIANGLE_STRIGN 和 gl.TRIANGLE_FAN渲染模式跟顶点次序有关;
         var vertices = new Float32Array([
-            // 绿色三角形在最后面
-            0.0, 0.5, -0.4, 0.4, 1.0, 0.4, 
-            -0.5, -0.5, -0.4, 0.4, 1.0, 0.4,
-            0.5, -0.5, -0.4, 1.0, 0.4, 0.4,
-            // 黄色三角形在中间
-            0.5, 0.4, -0.2, 1.0, 0.4, 0.4,
-            -0.5, 0.4, -0.2, 1.0, 1.0, 0.4,
-            0.0, -0.6, -0.2, 1.0, 1.0, 0.4,
-            // 蓝色三角形在最前面
-            0.0, 0.5, 0.0, 0.4, 0.4, 1.0,
-            -0.5, -0.5, 0.0, 0.4, 0.4, 1.0,
-            0.5, -0.5, 0.0, 1.0, 0.4, 0.4
-            
+            0.6, 0.0, 0.0, 0.0, 0.0, 1.0, 
+            0.5, 0.0, 0.0, 0.0, 1.0, 1.0,
+            0.5, 0.5, 0.5, 0.0, 1.0, 1.0
         ]);
-        var n = 9;
+        var n = 3;
         var vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
@@ -63,22 +63,34 @@ function main(){
         
         return n;
     }
-    let viewMatrix = new Matrix4();
+    let TMatrix = new Matrix4();
+    let R1Matrix = new Matrix4();
+    let R2Matrix = new Matrix4();
+    let R1InvertMatrix = new Matrix4();
+    let TInvertMatrix = new Matrix4();
     function render(){
         gl.clear(gl.COLOR_BUFFER_BIT); 
-        // 视图矩阵 X 模型矩阵 ，变换次序影响结果
-        viewMatrix.setLookAt(0.25, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); 
-        gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix.elements);
-        gl.drawArrays(gl.TRIANGLES, 0, n);
-      
-    }
-    var g_last = Date.now();
-    function getAngle(angle){
-        var now = Date.now();
-        var diff = now - g_last;
-        g_last = now;
-        var newAngle = angle + ( angle_step * diff ) / 1000.0;
-        return newAngle %= 360;
+        currentAngle += 0.5;   
+        
+        TMatrix.setTranslate(-0.5, 0.0, 0.0);
+        R1Matrix.setRotate(-90, 0.5, 0.0, 0.0);
+        R2Matrix.setRotate(currentAngle, 0.0, 0.5, 0.0);
+        
+        // multipy 规定右乘矩阵
+        // rotateMatrix.multiply(matrix);
+        // matrix.invert().multiply(rotateMatrix.multiply(matrix));
+        // 
+        R1Matrix.multiply(TMatrix);
+        R2Matrix.multiply(R1Matrix);
+        
+        R1InvertMatrix.setRotate(90, 0.5, 0, 0).multiply(R2Matrix);
+        TInvertMatrix.setTranslate(0.5, 0, 0).multiply(R1InvertMatrix);
+        // matrix.rotate(currentAngle, 0, 1, 0 );
+        gl.uniformMatrix4fv(u_rotateMatrix, false, TInvertMatrix.elements);
+        gl.drawArrays(gl.POINTS, 0, 1);
+        gl.uniformMatrix4fv(u_rotateMatrix, false, new Matrix4().elements);
+        gl.drawArrays(gl.LINES, 1, 2);
+        requestAnimationFrame(render);
     }
     render();
 }

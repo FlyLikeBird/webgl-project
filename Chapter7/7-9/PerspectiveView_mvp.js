@@ -4,10 +4,11 @@ var VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
   'attribute vec4 a_Color;\n' +
   'varying vec4 v_Color;\n' +
-  'uniform mat4 u_rotateMatrix;\n' +
-  'uniform mat4 u_viewMatrix;\n' + 
+  'uniform mat4 u_ModelMatrix;\n' +
+  'uniform mat4 u_ProjectMatrix;\n' + 
+  'uniform mat4 u_ViewMatrix;\n' +
   'void main() {\n' +
-  '  gl_Position = u_viewMatrix * a_Position ;\n' +
+  '  gl_Position = u_ProjectMatrix * u_ViewMatrix * u_ModelMatrix * a_Position ;\n' +
   '  gl_PointSize = 10.0;\n' +
   ' v_Color = a_Color;\n' +
   '}\n';
@@ -24,33 +25,32 @@ function main(){
     var gl = canvas.getContext('webgl');
     initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-    var u_rotateMatrix = gl.getUniformLocation(gl.program, 'u_rotateMatrix');
-    var u_viewMatrix = gl.getUniformLocation(gl.program, 'u_viewMatrix');
+    var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+    var u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
+    var u_ProjectMatrix = gl.getUniformLocation(gl.program, 'u_ProjectMatrix');
     var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
-    var matrix = new Matrix4();
-   
-    let currentAngle = 0;
+    
     var n = initVertexBuffer();
     function initVertexBuffer(){
         // var vertices = new Float32Array([-0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.8, -0.3, 0.6, -0.9]);
         // gl.TRIANGLE_STRIGN 和 gl.TRIANGLE_FAN渲染模式跟顶点次序有关;
         var vertices = new Float32Array([
-            // 绿色三角形在最后面
-            0.0, 0.5, -0.4, 0.4, 1.0, 0.4, 
-            -0.5, -0.5, -0.4, 0.4, 1.0, 0.4,
-            0.5, -0.5, -0.4, 1.0, 0.4, 0.4,
+            // X轴右侧区域 
+            0.0, 1.0, -4.0, 0.4, 1.0, 0.4, 
+            -0.5, -1.0, -4.0, 0.4, 1.0, 0.4,
+            0.5, -1.0, -4.0, 1.0, 0.4, 0.4,
             // 黄色三角形在中间
-            0.5, 0.4, -0.2, 1.0, 0.4, 0.4,
-            -0.5, 0.4, -0.2, 1.0, 1.0, 0.4,
-            0.0, -0.6, -0.2, 1.0, 1.0, 0.4,
+            0.0, 1.0, -2.0, 1.0, 1.0, 0.4,
+            -0.5, -1.0, -2.0, 1.0, 1.0, 0.4,
+            0.5, -1.0, -2.0, 1.0, 0.4, 0.4,    
             // 蓝色三角形在最前面
-            0.0, 0.5, 0.0, 0.4, 0.4, 1.0,
-            -0.5, -0.5, 0.0, 0.4, 0.4, 1.0,
-            0.5, -0.5, 0.0, 1.0, 0.4, 0.4
-            
+            0.0, 1.0, 0.0, 0.4, 0.4, 1.0,
+            -0.5, -1.0, 0.0, 0.4, 0.4, 1.0,
+            0.5, -1.0, 0.0, 1.0, 0.4, 0.4
         ]);
         var n = 9;
         var vertexBuffer = gl.createBuffer();
+
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         var FSize = vertices.BYTES_PER_ELEMENT;
@@ -60,25 +60,33 @@ function main(){
         gl.enableVertexAttribArray(a_Color);
         // gl.uniformMatrix4fv(u_rotateMatrix, false, matrix.elements);
         // gl.drawArrays(gl.POINTS, 0, 1);
-        
         return n;
     }
+    let near = 0.0, far = 0.5;
+    var modelMatrix = new Matrix4();
     let viewMatrix = new Matrix4();
+    let projectMatrix = new Matrix4();
+    
     function render(){
-        gl.clear(gl.COLOR_BUFFER_BIT); 
         // 视图矩阵 X 模型矩阵 ，变换次序影响结果
-        viewMatrix.setLookAt(0.25, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0); 
-        gl.uniformMatrix4fv(u_viewMatrix, false, viewMatrix.elements);
+        // projectMatrix.setOrtho(-0.5, 0.5, -0.5, 0.5, near, far); 
+        modelMatrix.setTranslate(0.75, 0, 0);
+        viewMatrix.setLookAt(0, 0, 5, 0, 0, -100, 0, 1, 0);
+        // projectMatrix.setOrtho(-1.0, 1.0, -1.0, 1.0, 1, 100);
+        projectMatrix.setPerspective(30, canvas.width  / canvas.height , 1, 100);
+        console.log(projectMatrix);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
+        gl.uniformMatrix4fv(u_ProjectMatrix, false, projectMatrix.elements);
         gl.drawArrays(gl.TRIANGLES, 0, n);
-      
+        
+        modelMatrix.setTranslate(-0.75, 0, 0);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.drawArrays(gl.TRIANGLES, 0, n);
+        // console.log(projectMatrix.multiply(viewMatrix));
+        gl.drawElements(gl.Index, 0, 2n - 1);
+        gl.testMode();
     }
-    var g_last = Date.now();
-    function getAngle(angle){
-        var now = Date.now();
-        var diff = now - g_last;
-        g_last = now;
-        var newAngle = angle + ( angle_step * diff ) / 1000.0;
-        return newAngle %= 360;
-    }
+   
     render();
 }
