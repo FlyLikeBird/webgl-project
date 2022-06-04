@@ -8,13 +8,15 @@ var VSHADER_SOURCE =
   'uniform mat4 u_ProjectMatrix;\n' +
   'uniform mat4 u_ModelMatrix;\n' + 
   'uniform mat4 u_ViewMatrix;\n' +
-  'uniform vec3 u_LightColor;\n' + // 定义平行光颜色
-  'uniform vec3 u_LightDirection;\n' + // 定义平行光方向
+  'uniform vec3 u_LightColor;\n' + // 定义点光源颜色
+  'uniform vec3 u_LightPosition;\n' + // 定义点光源位置
   'uniform vec3 u_AmbientLight;\n' + // 定义环境光
   'uniform mat4 u_NormalMatrix;\n' +
   'void main() {\n' +
   ' gl_Position = u_ProjectMatrix * u_ViewMatrix * u_ModelMatrix * a_Position ;\n' +
   ' vec3 normal = normalize(vec3( u_NormalMatrix * a_Normal));\n' + 
+  ' vec4 vertexPosition = u_ModelMatrix * a_Position;\n' +
+  ' vec3 lightDirection = '
   ' float nDotL = max(dot(u_LightDirection, normal), 0.0);\n' + 
   ' vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;\n' + // 计算平行光源漫反射光的颜色
   ' vec3 ambient = u_AmbientLight * a_Color.rgb;\n' +  // 计算均匀的环境光漫反射光的颜色
