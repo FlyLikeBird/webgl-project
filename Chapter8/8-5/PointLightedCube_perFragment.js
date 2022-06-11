@@ -5,30 +5,34 @@ var VSHADER_SOURCE =
   'attribute vec4 a_Color;\n' +
   'attribute vec4 a_Normal;\n' + // 逐顶点定义法向量
   'varying vec4 v_Color;\n' +
+  'varying vec3 v_Position;\n' +
+  'varying vec3 v_Normal;\n' +
   'uniform mat4 u_ProjectMatrix;\n' +
   'uniform mat4 u_ModelMatrix;\n' + 
   'uniform mat4 u_ViewMatrix;\n' +
-  'uniform vec3 u_LightColor;\n' + // 定义点光源颜色
-  'uniform vec3 u_LightPosition;\n' + // 定义点光源位置
-  'uniform vec3 u_AmbientLight;\n' + // 定义环境光
   'uniform mat4 u_NormalMatrix;\n' +
   'void main() {\n' +
   ' gl_Position = u_ProjectMatrix * u_ViewMatrix * u_ModelMatrix * a_Position ;\n' +
-  ' vec3 normal = normalize(vec3( u_NormalMatrix * a_Normal));\n' + 
-  ' vec4 vertexPosition = u_ModelMatrix * a_Position;\n' +
-  ' vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n' +
-  ' float nDotL = max(dot(lightDirection, normal), 0.0);\n' + 
-  ' vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;\n' + // 计算平行光源漫反射光的颜色
-  ' vec3 ambient = u_AmbientLight * a_Color.rgb;\n' +  // 计算均匀的环境光漫反射光的颜色
-  ' v_Color = vec4(diffuse, a_Color.a);\n' +
-    // 'v_Color = a_Color;\n' + 
+  ' v_Position = vec3(u_ModelMatrix * a_Position);\n' +
+  ' v_Normal = normalize(vec3(u_NormalMatrix * a_Normal));\n' + 
+  ' v_Color = a_Color;\n' + 
   '}\n';
 // Fragment shader program
 var FSHADER_SOURCE =
-  'precision mediump float;\n' + 
+  'precision mediump float;\n' +
+  'uniform vec3 u_LightColor;\n' +
+  'uniform vec3 u_LightPosition;\n' +
+  'uniform vec3 u_AmbientLight;\n' + 
   'varying vec4 v_Color;\n' + 
+  'varying vec3 v_Position;\n' +
+  'varying vec3 v_Normal;\n' +
   'void main() {\n' +
-  '  gl_FragColor = v_Color;\n' + 
+  ' vec3 normal=normalize(v_Normal);\n' +
+  ' vec3 lightDirection = normalize(u_LightPosition - v_Position);\n' +
+  ' float nDotL = max(dot(lightDirection, normal), 0.0);\n' +
+  ' vec3 diffuse = u_LightColor * v_Color.rgb * nDotL;\n' +
+  ' vec3 ambient = u_AmbientLight * v_Color.rgb;\n' +
+  ' gl_FragColor = vec4(diffuse + ambient, v_Color.a);\n' +
   '}\n';
 
 function main(){

@@ -60,6 +60,7 @@ Matrix4.prototype.set = function(src) {
 
   return this;
 };
+
 /**
  * Multiply the matrix from the right.
  * @param other The multiply matrix
@@ -126,6 +127,7 @@ Matrix4.prototype.multiplyVector4 = function(pos) {
   result[1] = p[0] * e[1] + p[1] * e[5] + p[2] * e[ 9] + p[3] * e[13];
   result[2] = p[0] * e[2] + p[1] * e[6] + p[2] * e[10] + p[3] * e[14];
   result[3] = p[0] * e[3] + p[1] * e[7] + p[2] * e[11] + p[3] * e[15];
+
   return v;
 };
 
@@ -259,7 +261,7 @@ Matrix4.prototype.setOrtho = function(left, right, bottom, top, near, far) {
   e[13] = -(top + bottom) * rh;
   e[14] = -(far + near) * rd;
   e[15] = 1;
-  console.log('正射投影矩阵', e);
+
   return this;
 };
 
@@ -372,7 +374,9 @@ Matrix4.prototype.setPerspective = function(fovy, aspect, near, far) {
 
   rd = 1 / (far - near);
   ct = Math.cos(fovy) / s;
+
   e = this.elements;
+
   e[0]  = ct / aspect;
   e[1]  = 0;
   e[2]  = 0;
@@ -392,7 +396,7 @@ Matrix4.prototype.setPerspective = function(fovy, aspect, near, far) {
   e[13] = 0;
   e[14] = -2 * near * far * rd;
   e[15] = 0;
-  console.log('透视投影矩阵', e);
+
   return this;
 };
 
@@ -472,11 +476,6 @@ Matrix4.prototype.translate = function(x, y, z) {
   return this;
 };
 
-// 先获取旋转矩阵
-// e[0] = c;  e[4] =-s;  e[ 8] = 0;  e[12] = 0;    *  1 0 0 x   c -s 0 
-// e[1] = s;  e[5] = c;  e[ 9] = 0;  e[13] = 0;       0 1 0 y
-// e[2] = 0;  e[6] = 0;  e[10] = 1;  e[14] = 0;       0 0 1 z 
-// e[3] = 0;  e[7] = 0;  e[11] = 0;  e[15] = 1;       0 0 0 1
 /**
  * Set the matrix for rotation.
  * The vector of rotation axis may not be normalized.
@@ -589,10 +588,6 @@ Matrix4.prototype.setLookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, cente
   fx = centerX - eyeX;
   fy = centerY - eyeY;
   fz = centerZ - eyeZ;
-console.log(fx, fy, fz);
-// console.log(eyeX === centerX );
-// console.log(UpX.isEqual(eyeY));
-// 当F向量的X分量 》 F向量的Y分量，则先计算出XOZ平面中的垂直分量,再计算
 
   // Normalize f.
   rlf = 1 / Math.sqrt(fx*fx + fy*fy + fz*fz);
@@ -615,42 +610,30 @@ console.log(fx, fy, fz);
   ux = sy * fz - sz * fy;
   uy = sz * fx - sx * fz;
   uz = sx * fy - sy * fx;
-    // 根据输入参数计算出摄影机坐标系（视线，上方向);
-    // 定义一个矩阵描述将摄影机坐标系复合变换至世界坐标系的变换过程
-    // 世界坐标系（X，Y，Z) => 视角坐标系(U, V, N);
-    // X = U * P
-    // 根据基变换和坐标变换得出旋转矩阵
-    // 旋转矩阵右乘坐标系变换的平移矩阵得出最终视图矩阵
+
   // Set to this.
   e = this.elements;
-//  
   e[0] = sx;
   e[1] = ux;
   e[2] = -fx;
-//   e[2] = fx;
   e[3] = 0;
 
   e[4] = sy;
   e[5] = uy;
   e[6] = -fy;
-//   e[6] = fy;
   e[7] = 0;
 
   e[8] = sz;
   e[9] = uz;
   e[10] = -fz;
-//   e[10] = fz;
   e[11] = 0;
 
   e[12] = 0;
   e[13] = 0;
   e[14] = 0;
   e[15] = 1;
-//   console.log(sx, sy, sz);
-//   console.log(ux, uy, uz);
-//   console.log(fx, fy, fz);
-    // f向量表示视线向量, 根据f向量和指定的UP向量计算出叉乘向量S, 
-    console.log('视图矩阵:', e);
+
+  // Translate.
   return this.translate(-eyeX, -eyeY, -eyeZ);
 };
 
