@@ -30,7 +30,7 @@ function main() {
   var canvas = document.getElementById('webgl');
 
   // Get the rendering context for WebGL
-  var gl = getWebGLContext(canvas);
+  var gl = canvas.getContext('webgl');
   if (!gl) {
     console.log('Failed to get the rendering context for WebGL');
     return;
@@ -79,11 +79,11 @@ function main() {
 
   var viewProjMatrix = new Matrix4();   // Prepare view projection matrix for color buffer
   viewProjMatrix.setPerspective(30, canvas.width/canvas.height, 1.0, 100.0);
-  viewProjMatrix.lookAt(0.0, 0.0, 7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+  viewProjMatrix.lookAt(0.0, 2.0, 7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
   var viewProjMatrixFBO = new Matrix4();   // Prepare view projection matrix for FBO
   viewProjMatrixFBO.setPerspective(30.0, OFFSCREEN_WIDTH/OFFSCREEN_HEIGHT, 1.0, 100.0);
-  viewProjMatrixFBO.lookAt(0.0, 2.0, 7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+  viewProjMatrixFBO.lookAt(0.0, 6.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
   // Start drawing
   var currentAngle = 0.0; // Current rotation angle (degrees)
@@ -255,7 +255,7 @@ function initTextures(gl) {
   };
 
   // Tell the browser to load an Image  
-  image.src = '../resources/particle.png';
+  image.src = '../../resources/sky.jpg';
 
   return texture;
 }
@@ -321,7 +321,7 @@ function initFramebufferObject(gl) {
 function draw(gl, canvas, fbo, plane, cube, angle, texture, viewProjMatrix, viewProjMatrixFBO) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);              // Change the drawing destination to FBO
   gl.viewport(0, 0, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT); // Set a viewport for FBO
-  gl.clearColor(0.2, 0.2, 0.4, 1.0); // Set clear color (the color is slightly changed)
+  gl.clearColor(0.2, 0.8, 0.4, 1.0); // Set clear color (the color is slightly changed)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);  // Clear FBO
 
   drawTexturedCube(gl, gl.program, cube, angle, texture, viewProjMatrixFBO);   // Draw the cube
@@ -339,25 +339,32 @@ function draw(gl, canvas, fbo, plane, cube, angle, texture, viewProjMatrix, view
 var g_modelMatrix = new Matrix4();
 var g_mvpMatrix = new Matrix4();
 
+var cube_modelMatrix = new Matrix4();
+var cube_mvpMatrix = new Matrix4();
+
+var plane_modelMatrix = new Matrix4();
+var plane_mvpMatrix = new Matrix4();
+
 function drawTexturedCube(gl, program, o, angle, texture, viewProjMatrix) {
   // Calculate a model matrix
-  g_modelMatrix.setRotate(20.0, 1.0, 0.0, 0.0);
-  g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
+//   g_modelMatrix.setRotate(20.0, 1.0, 0.0, 0.0);
+//   g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
+  cube_modelMatrix.setRotate(angle, 0.0, 1.0, 0.0);
 
   // Calculate the model view project matrix and pass it to u_MvpMatrix
-  g_mvpMatrix.set(viewProjMatrix);
-  g_mvpMatrix.multiply(g_modelMatrix);
-  gl.uniformMatrix4fv(program.u_MvpMatrix, false, g_mvpMatrix.elements);
+  cube_mvpMatrix.set(viewProjMatrix);
+  cube_mvpMatrix.multiply(cube_modelMatrix);
+  gl.uniformMatrix4fv(program.u_MvpMatrix, false, cube_mvpMatrix.elements);
 
   drawTexturedObject(gl, program, o, texture);
 }
 
 function drawTexturedPlane(gl, program, o, angle, texture, viewProjMatrix) {
   // Calculate a model matrix
-  g_modelMatrix.setTranslate(0, 0, 2);
-  g_modelMatrix.rotate(20.0, 1.0, 0.0, 0.0);
-  g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
-
+//   g_modelMatrix.setTranslate(0, 0, 2);
+//   g_modelMatrix.rotate(-30.0, 1.0, 0.0, 0.0);
+//   g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
+    g_modelMatrix.setRotate(angle - 10, 0.0, 1.0, 0.0);
   // Calculate the model view project matrix and pass it to u_MvpMatrix
   g_mvpMatrix.set(viewProjMatrix);
   g_mvpMatrix.multiply(g_modelMatrix);

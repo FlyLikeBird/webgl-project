@@ -118,7 +118,6 @@ function main() {
   var viewProjMatrix = new Matrix4();
   viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 100.0);
   viewProjMatrix.lookAt(0.0, 0.0, 15.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
   // Start drawing
   var currentAngle = 0.0; // Current rotation angle (degrees)
   var tick = function() {
@@ -131,6 +130,11 @@ function main() {
     drawTexCube(gl, texProgram, cube, texture, 2.0, currentAngle, viewProjMatrix);
 
     window.requestAnimationFrame(tick, canvas);
+    // setTimeout(()=>{
+    //     drawSolidCube(gl, solidProgram, cube, -2.0, currentAngle, viewProjMatrix);
+    // // Draw a cube with texture
+    // drawTexCube(gl, texProgram, cube, texture, 2.0, currentAngle, viewProjMatrix);
+    // },1000)
   };
   tick();
 }

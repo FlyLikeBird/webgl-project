@@ -104,37 +104,64 @@ function main(){
     gl.uniformMatrix4fv(u_ProjectMatrix, false, projectMatrix.elements);
     // 模型变换矩阵和法向量相关的运算
     var g_modelMatrix = new Matrix4();
+    var g_normalMatrix = new Matrix4();
     var ANGLE_STEP = 3.0;
     var arm1Angle = 0.0;
     var arm2Angle = 0.0;
+    var arm3Angle = 0.0;
+    var arm4Angle = 0.0;
     function draw(){
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         // 渲染底座
         var baseHeight = 2.0;
-
-        var arm1Length = 10.0; // Length of arm1
-        // g_modelMatrix.setTranslate(0.0, -14.0, 0.0);
-        // g_modelMatrix.rotate(arm1Angle, 0.0, 1.0, 0.0);    // Rotate around the y-axis
-        
-        // 渲染arm1
-        normalMatrix.setInverseOf(g_modelMatrix);
-        normalMatrix.transpose();
-        gl.uniformMatrix4fv(u_ModelMatrix, false, g_modelMatrix.elements);
-        gl.uniformMatrix4fv(u_NormalMatrix, false, normalMatrix.elements);
-        gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
-        // 渲染arm2(旋转矩阵和平移矩阵交换次序，渲染结果完全不同)
-        // g_modelMatrix.translate(0.0, arm1Length, 0.0);
-        // g_modelMatrix.rotate(arm2Angle, 0.0, 0.0, 1.0);
-        // g_modelMatrix.scale(1.2, 1, 1.2);
-        // normalMatrix.setInverseOf(g_modelMatrix);
-        // normalMatrix.transpose();
-        // gl.uniformMatrix4fv(u_ModelMatrix, false, g_modelMatrix.elements);
-        // gl.uniformMatrix4fv(u_NormalMatrix, false, normalMatrix.elements);
-        // gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0); 
+        g_modelMatrix.setTranslate(0.0, -12, 0.0);
+        drawBox(10.0, baseHeight, 10.0);
+        // 渲染下臂
+        var arm1Length = 10.0;
+        g_modelMatrix.translate(0.0, baseHeight, 0.0);     // Move onto the base
+        g_modelMatrix.rotate(arm1Angle, 0.0, 1.0, 0.0);  // Rotate around the y-axis
+        drawBox(3.0, arm1Length, 3.0); // Draw
+        // 渲染上臂
+        var arm2Length = 10.0;
+        g_modelMatrix.translate(0.0, arm2Length, 0.0);
+        g_modelMatrix.rotate(arm2Angle, 0.0, 0.0, 1.0);
+        drawBox(4.0, arm2Length, 4.0);
+        // 渲染手掌
+        var palmLength = 2.0;
+        g_modelMatrix.translate(0.0, arm2Length, 0.0);       // Move to palm
+        g_modelMatrix.rotate(arm3Angle, 0.0, 1.0, 0.0);  // Rotate around the y-axis
+        drawBox(2.0, palmLength, 6.0);  // Draw
+        g_modelMatrix.translate(0.0, palmLength, 0.0);
+        // 渲染手指
+        pushMatrix(g_modelMatrix);
+        g_modelMatrix.translate(0.0, 0.0, 2.0);
+        g_modelMatrix.rotate(arm4Angle, 1.0, 0.0, 0.0);  // Rotate around the x-axis
+        drawBox(1.0, 4.0, 1.0);
+        g_modelMatrix = popMatrix();
+        g_modelMatrix.translate(0.0, 0.0, -2.0);
+        g_modelMatrix.rotate(-arm4Angle, 1.0, 0.0, 0.0);
+        drawBox(1.0, 4.0, 1.0);
     }
     function drawBox(width, height, depth){
-        
+        pushMatrix(g_modelMatrix);
+        g_modelMatrix.scale(width, height, depth);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, g_modelMatrix.elements);
+        // Calculate the normal transformation matrix and pass it to u_NormalMatrix
+        g_normalMatrix.setInverseOf(g_modelMatrix);
+        g_normalMatrix.transpose();
+        gl.uniformMatrix4fv(u_NormalMatrix, false, g_normalMatrix.elements);
+        gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
+        g_modelMatrix = popMatrix();
     }
+    var g_matrixStack = [];
+    function pushMatrix(m){
+        let m2 = new Matrix4(m);
+        g_matrixStack.push(m2);
+    }
+    function popMatrix(){
+        return g_matrixStack.pop();
+    }
+    
     document.onkeydown = function(ev){
         switch (ev.keyCode) {
             case 38: // Up arrow key -> the positive rotation of joint1 around the z-axis
@@ -149,6 +176,18 @@ function main(){
             case 37: // Left arrow key -> the negative rotation of arm1 around the y-axis
               arm1Angle = (arm1Angle - ANGLE_STEP) % 360;
               break;
+            case 90: // 'ｚ'key -> the positive rotation of joint2
+                arm3Angle = (arm3Angle + ANGLE_STEP) % 360;
+                break; 
+            case 88: // 'x'key -> the negative rotation of joint2
+                arm3Angle = (arm3Angle - ANGLE_STEP) % 360;
+                break;
+            case 86: // 'v'key -> the positive rotation of joint3
+                if (arm4Angle < 60.0)  arm4Angle = (arm4Angle + ANGLE_STEP) % 360;
+                break;
+            case 67: // 'c'key -> the nagative rotation of joint3
+                if (arm4Angle > -60.0) arm4Angle = (arm4Angle - ANGLE_STEP) % 360;
+                break;
             default: return; // Skip drawing at no effective action
         }
         // Draw the robot arm

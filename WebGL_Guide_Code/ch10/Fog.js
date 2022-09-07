@@ -103,11 +103,11 @@ function main() {
 
   var modelViewMatrix = new Matrix4();
   modelViewMatrix.setLookAt(eye[0], eye[1], eye[2], 0, 2, 0, 0, 1, 0);
-  modelViewMatrix.multiply(modelMatrix);
-  modelViewMatrix.multiplyVector4(new Vector4([1, 1, 1, 1]));
-  mvpMatrix.multiplyVector4(new Vector4([1, 1, 1, 1]));
-  modelViewMatrix.multiplyVector4(new Vector4([-1, 1, 1, 1]));
-  mvpMatrix.multiplyVector4(new Vector4([-1, 1, 1, 1]));
+//   modelViewMatrix.multiply(modelMatrix);
+//   modelViewMatrix.multiplyVector4(new Vector4([1, 1, 1, 1]));
+//   mvpMatrix.multiplyVector4(new Vector4([1, 1, 1, 1]));
+//   modelViewMatrix.multiplyVector4(new Vector4([-1, 1, 1, 1]));
+//   mvpMatrix.multiplyVector4(new Vector4([-1, 1, 1, 1]));
 }
 
 function keydown(ev, gl, n, u_FogDist, fogDist) {

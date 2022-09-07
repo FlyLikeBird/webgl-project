@@ -10,12 +10,16 @@ var VSHADER_SOURCE =
   'void main() {\n' +
   '  gl_Position = u_MvpMatrix * a_Position;\n' +
   '  int face = int(a_Face);\n' + // Convert to int
-  '  vec3 color = (face == u_PickedFace) ? vec3(1.0) : a_Color.rgb;\n' +
-  '  if(u_PickedFace == 0) {\n' + // In case of 0, insert the face number into alpha
+    '  vec3 color = (face == u_PickedFace) ? vec3(1.0, 0.0, 0.0) : a_Color.rgb;\n' +
+
+'  if ( u_PickedFace == 0 ) {\n' +
+  //   '  if(u_PickedFace == 0) {\n' + // In case of 0, insert the face number into alpha
   '    v_Color = vec4(color, a_Face/255.0);\n' +
-  '  } else {\n' +
-  '    v_Color = vec4(color, a_Color.a);\n' +
-  '  }\n' +
+  '  } else {\n' + 
+//   '    v_Color = vec4(color, a_Color.a);\n' +
+'    v_Color = vec4(color, 1.0);\n' +
+    
+'  }\n' +
   '}\n';
 
 // Fragment shader program
@@ -83,6 +87,7 @@ function main() {
       // If Clicked position is inside the <canvas>, update the selected surface
       var x_in_canvas = x - rect.left, y_in_canvas = rect.bottom - y;
       var face = checkFace(gl, n, x_in_canvas, y_in_canvas, currentAngle, u_PickedFace, viewProjMatrix, u_MvpMatrix);
+      console.log(face);
       gl.uniform1i(u_PickedFace, face); // Pass the surface number to u_PickedFace
       draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix);
     }
@@ -169,7 +174,7 @@ function checkFace(gl, n, x, y, currentAngle, u_PickedFace, viewProjMatrix, u_Mv
   draw(gl, n, currentAngle, viewProjMatrix, u_MvpMatrix);
   // Read the pixel value of the clicked position. pixels[3] is the surface number
   gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
+    console.log(pixels);
   return pixels[3];
 }
 
